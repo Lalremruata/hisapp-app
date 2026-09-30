@@ -1,0 +1,55 @@
+name: hisap_app_2_0
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ^3.8.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Stores the items the shopkeeper types in at the counter, so tomorrow's
+  # search still finds them.
+  shared_preferences: ^2.3.0
+
+  # Builds the tax invoice as a real PDF, and hands it to the platform's own
+  # print, share and save-to-file.
+  pdf: ^3.11.0
+  printing: ^5.13.0
+  drift: ^2.31.0
+  drift_flutter: ^0.2.8
+  file_picker: ^11.0.3
+  share_plus: ^12.0.2
+
+  # Draws the UPI QR code on the on-screen invoice. Already pulled in by pdf,
+  # which prints the same code on paper.
+  barcode: ^2.2.9
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  drift_dev: ^2.31.0
+  build_runner: ^2.15.1
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    # The PDF loads these at runtime: the standard PDF faces have no rupee
+    # sign, and an invoice made entirely of rupee amounts cannot use them.
+    - assets/fonts/
+
+  fonts:
+    # Nocturne calls for Inter. Bundling it means the app no longer falls back
+    # to whatever the platform's UI face happens to be.
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Inter-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Inter-SemiBold.ttf
+          weight: 600
