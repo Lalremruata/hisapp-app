@@ -10,6 +10,27 @@ works fully offline: everything is kept in a SQLite database on the device.
 
 Built with Flutter. It runs on Android, iOS, macOS, Windows, Linux and the web.
 
+## Screenshots
+
+<p align="center">
+  <img src="docs/screenshots/tablet-billing.png" alt="Tablet billing: parts and labour on one bill, with the GST split and total" width="100%">
+</p>
+
+| Tax invoice with bank details and UPI QR | Bank & UPI settings |
+|---|---|
+| <img src="docs/screenshots/invoice.png" alt="A4 tax invoice with CGST/SGST, bank details and a UPI QR code"> | <img src="docs/screenshots/settings-bank.png" alt="Settings: UPI ID and bank account fields"> |
+
+| Tablet, keypad layout | Night theme |
+|---|---|
+| <img src="docs/screenshots/tablet-keypad.png" alt="Keypad billing layout with common jobs and a number pad"> | <img src="docs/screenshots/tablet-night.png" alt="Tablet billing in the Night theme"> |
+
+<p align="center">
+  <img src="docs/screenshots/phone-billing.png" alt="Phone billing layout" width="300"><br>
+  <em>Phone layout</em>
+</p>
+
+<sub>Screenshots use sample data: the workshop, customer, bank account and UPI ID are all made up.</sub>
+
 ## Features
 
 **Billing**
@@ -102,6 +123,14 @@ Workshop settings are saved as one JSON record in the `meta` table, so adding a
 settings field doesn't need a schema change. Older records still load, with the
 new field left at its default.
 
+### Screenshots
+The images in `docs/screenshots/` are rendered from the app's own widgets with
+sample data. To regenerate them after a UI change:
+
+```sh
+flutter test tool/screenshots/screenshots_test.dart
+```
+
 ### App icon
 See [`tool/app_icon/README.md`](tool/app_icon/README.md) for how to change the
 icon and export it for every platform.
@@ -125,6 +154,8 @@ lib/
 └── theme/                  "Nocturne" design system: tokens, components, icons
 test/                       Unit and widget tests
 tool/app_icon/              Icon renderer and exporter
+tool/screenshots/           Renders the README screenshots
+docs/screenshots/           README screenshots
 assets/fonts/               Inter, bundled (also has the ₹ sign for the PDF)
 ```
 
