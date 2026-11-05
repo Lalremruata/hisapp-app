@@ -20,12 +20,14 @@ class TabletKeypadBilling extends StatelessWidget {
     required this.onOpenSettings,
     required this.onOpenRateCard,
     required this.onOpenBills,
+    required this.onOpenSales,
     required this.onOpenInvoice,
   });
 
   final VoidCallback onOpenSettings;
   final VoidCallback onOpenRateCard;
   final VoidCallback onOpenBills;
+  final VoidCallback onOpenSales;
   final VoidCallback onOpenInvoice;
 
   @override
@@ -37,6 +39,7 @@ class TabletKeypadBilling extends StatelessWidget {
           onOpenSettings: onOpenSettings,
           onOpenRateCard: onOpenRateCard,
           onOpenBills: onOpenBills,
+          onOpenSales: onOpenSales,
         ),
         Expanded(
           child: Row(
@@ -60,11 +63,13 @@ class _TopBar extends StatelessWidget {
     required this.onOpenSettings,
     required this.onOpenRateCard,
     required this.onOpenBills,
+    required this.onOpenSales,
   });
 
   final VoidCallback onOpenSettings;
   final VoidCallback onOpenRateCard;
   final VoidCallback onOpenBills;
+  final VoidCallback onOpenSales;
 
   @override
   Widget build(BuildContext context) {
@@ -101,6 +106,13 @@ class _TopBar extends StatelessWidget {
             ),
             const SizedBox(width: 6),
             LabeledIconButton(
+              icon: PhosphorIcons.chartBar,
+              label: 'Sales',
+              width: 80,
+              onPressed: onOpenSales,
+            ),
+            const SizedBox(width: 6),
+            LabeledIconButton(
               icon: PhosphorIcons.cube,
               label: 'Parts',
               width: 80,
@@ -114,8 +126,10 @@ class _TopBar extends StatelessWidget {
               onPressed: onOpenSettings,
             ),
             const Spacer(),
+            // The one thing on the bar that can give way when the text is
+            // set large: the tag shortens before the buttons are squeezed.
             if (model.settings.worksOffline) ...[
-              const OfflineTag(),
+              const Flexible(child: OfflineTag()),
               const SizedBox(width: 14),
             ],
             NButton(

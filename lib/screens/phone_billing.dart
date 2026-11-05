@@ -21,12 +21,14 @@ class PhoneBilling extends StatefulWidget {
     required this.onOpenSettings,
     required this.onOpenRateCard,
     required this.onOpenBills,
+    required this.onOpenSales,
     required this.onOpenInvoice,
   });
 
   final VoidCallback onOpenSettings;
   final VoidCallback onOpenRateCard;
   final VoidCallback onOpenBills;
+  final VoidCallback onOpenSales;
   final VoidCallback onOpenInvoice;
 
   @override
@@ -90,6 +92,12 @@ class _PhoneBillingState extends State<PhoneBilling> {
                 icon: PhosphorIcons.listBullets,
                 width: 64,
                 onPressed: widget.onOpenBills,
+              ),
+              LabeledIconButton(
+                label: 'Sales',
+                icon: PhosphorIcons.chartBar,
+                width: 64,
+                onPressed: widget.onOpenSales,
               ),
               LabeledIconButton(
                 label: 'Parts',

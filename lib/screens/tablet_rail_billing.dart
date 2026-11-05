@@ -24,12 +24,14 @@ class TabletRailBilling extends StatefulWidget {
     required this.onOpenSettings,
     required this.onOpenRateCard,
     required this.onOpenBills,
+    required this.onOpenSales,
     required this.onOpenInvoice,
   });
 
   final VoidCallback onOpenSettings;
   final VoidCallback onOpenRateCard;
   final VoidCallback onOpenBills;
+  final VoidCallback onOpenSales;
   final VoidCallback onOpenInvoice;
 
   @override
@@ -60,6 +62,7 @@ class _TabletRailBillingState extends State<TabletRailBilling> {
           onOpenSettings: widget.onOpenSettings,
           onOpenRateCard: widget.onOpenRateCard,
           onOpenBills: widget.onOpenBills,
+          onOpenSales: widget.onOpenSales,
         ),
         Expanded(
           child: Column(
@@ -122,11 +125,13 @@ class _IconRail extends StatelessWidget {
     required this.onOpenSettings,
     required this.onOpenRateCard,
     required this.onOpenBills,
+    required this.onOpenSales,
   });
 
   final VoidCallback onOpenSettings;
   final VoidCallback onOpenRateCard;
   final VoidCallback onOpenBills;
+  final VoidCallback onOpenSales;
 
   @override
   Widget build(BuildContext context) {
@@ -169,6 +174,12 @@ class _IconRail extends StatelessWidget {
               icon: PhosphorIcons.listBullets,
               label: 'Bills',
               onPressed: onOpenBills,
+            ),
+            const SizedBox(height: 8),
+            LabeledIconButton(
+              icon: PhosphorIcons.chartBar,
+              label: 'Sales',
+              onPressed: onOpenSales,
             ),
             const SizedBox(height: 8),
             LabeledIconButton(
