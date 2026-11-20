@@ -679,37 +679,39 @@ void main() {
       expect(find.text('Repriced'), findsOneWidget);
     });
 
-    testWidgets('a new price reaches the bill, but not a line already on it', (
-      tester,
-    ) async {
-      await tester.pumpAppAt(_tablet);
-      await openRateCard(tester);
+    testWidgets(
+      'a new price reaches the bill, including a line already on it',
+      (tester) async {
+        await tester.pumpAppAt(_tablet);
+        await openRateCard(tester);
 
-      await findRow(tester, 'oil filter');
-      await tester.tap(find.text('Oil Filter'));
-      await tester.pumpAndSettle();
-      await tester.enterText(_newItemRate, '400');
-      await tester.pump();
-      await tester.tap(
-        find.descendant(
-          of: find.byType(NDialog),
-          matching: find.widgetWithText(NButton, 'Save'),
-        ),
-      );
-      await tester.pumpAndSettle();
-      await tester.tap(find.bySemanticsLabel('Back').first);
-      await tester.pumpAndSettle();
+        await findRow(tester, 'oil filter');
+        await tester.tap(find.text('Oil Filter'));
+        await tester.pumpAndSettle();
+        await tester.enterText(_newItemRate, '400');
+        await tester.pump();
+        await tester.tap(
+          find.descendant(
+            of: find.byType(NDialog),
+            matching: find.widgetWithText(NButton, 'Save'),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.bySemanticsLabel('Back').first);
+        await tester.pumpAndSettle();
 
-      // The filter already on the bill keeps the price it was added at.
-      expect(find.text('₹2,974'), findsOneWidget);
+        // The filter already on the bill takes the new price: 2,600 before GST.
+        expect(find.text('₹3,068'), findsOneWidget);
 
-      // Adding it again brings the new price, on its own line.
-      await tester.enterText(_search, 'Oil Filter');
-      await tester.pump();
-      await tester.tap(find.text('Add to bill'));
-      await tester.pumpAndSettle();
-      expect(find.text('₹3,446'), findsOneWidget);
-    });
+        // Adding it again joins the same line, now that the prices match.
+        await tester.enterText(_search, 'Oil Filter');
+        await tester.pump();
+        await tester.tap(find.text('Add to bill'));
+        await tester.pumpAndSettle();
+        expect(find.text('₹3,540'), findsOneWidget);
+        expect(find.text('Oil Filter'), findsOneWidget);
+      },
+    );
 
     testWidgets('removing asks first, then offers to put it back', (
       tester,

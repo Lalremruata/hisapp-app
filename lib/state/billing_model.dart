@@ -974,9 +974,10 @@ class BillingModel extends ChangeNotifier {
   /// item takes it off the list and adds the new one in its place — which is
   /// what a rename looks like from the outside.
   ///
-  /// Lines already on a bill are untouched: a [CartLine] copies what it needs
-  /// when it is added, so repricing the rate card never silently rewrites a
-  /// bill in progress.
+  /// The bill on the counter follows the change: a line that was added at the
+  /// item's old rate takes the new rate, GST, code and name. A line whose rate
+  /// was typed in by hand keeps it, a paid bill is never rewritten, and other
+  /// saved bills keep the prices they were saved with.
   void updateItem(CatalogItem original, CatalogItem updated) {
     final renamed =
         original.name.trim().toLowerCase() != updated.name.trim().toLowerCase();
@@ -997,6 +998,40 @@ class BillingModel extends ChangeNotifier {
 
     _persist();
     _rebuild();
+    _repriceCart(original, updated);
+  }
+
+  /// Carries a rate card edit onto the bill on the counter, unless it is paid.
+  ///
+  /// Only lines at [original]'s rate are touched, so a rate typed in by hand
+  /// survives. Lines that end up the same item at the same rate are merged,
+  /// the way [addToCart] merges them.
+  void _repriceCart(CatalogItem original, CatalogItem updated) {
+    if (isPaid) return;
+
+    var changed = false;
+    for (var i = 0; i < _cart.length; i++) {
+      final line = _cart[i];
+      if (line.name != original.name || line.rate != original.rate) continue;
+      final repriced = CartLine.from(updated, qty: line.qty);
+      if (identical(line, _lastAdded)) _lastAdded = repriced;
+      _cart[i] = repriced;
+      changed = true;
+    }
+    if (!changed) return;
+
+    for (var i = 0; i < _cart.length; i++) {
+      for (var j = _cart.length - 1; j > i; j--) {
+        final keep = _cart[i];
+        final other = _cart[j];
+        if (other.name != keep.name || other.rate != keep.rate) continue;
+        keep.qty += other.qty;
+        if (identical(other, _lastAdded)) _lastAdded = keep;
+        _cart.removeAt(j);
+      }
+    }
+
+    _touch();
   }
 
   /// Takes [item] off the rate card. A shipped item is hidden rather than
