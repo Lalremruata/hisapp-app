@@ -235,8 +235,8 @@ class _PhoneLine extends StatelessWidget {
                 ),
                 const SizedBox(width: 10),
                 Text(
-                  line.amountLabel,
-                  style: N.font(size: 17, weight: FontWeight.w600),
+                  line.grossLabel,
+                  style: N.font(size: 20, weight: FontWeight.w700),
                 ),
               ],
             ),
@@ -245,7 +245,8 @@ class _PhoneLine extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    '${line.rateLabel} each\nGST ${line.gstLabel}',
+                    '${line.amountLabel} before GST\n'
+                    '${line.rateLabel} each · GST ${line.gstLabel}',
                     style: N.caption(size: 14, height: 1.35),
                   ),
                 ),

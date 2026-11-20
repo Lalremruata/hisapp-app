@@ -454,7 +454,7 @@ class _TableHead extends StatelessWidget {
           children: [
             cell('Item', TextAlign.left),
             cell('Quantity', TextAlign.center),
-            cell('Amount', TextAlign.right),
+            cell('Incl. GST', TextAlign.right),
             const SizedBox.shrink(),
           ],
         ),
@@ -511,6 +511,7 @@ class _LineRow extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   [
+                    '${line.amountLabel} before GST',
                     '${line.rateLabel} each',
                     'GST ${line.gstLabel}',
                     if (line.code.isNotEmpty) '${line.codeLabel} ${line.code}',
@@ -542,10 +543,16 @@ class _LineRow extends StatelessWidget {
                 ),
               ],
             ),
-            Text(
-              line.amountLabel,
-              textAlign: TextAlign.right,
-              style: N.font(size: 17, weight: FontWeight.w600),
+            // What the customer pays for the line, GST included; the value
+            // before GST sits under the item's name.
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerRight,
+              child: Text(
+                line.grossLabel,
+                textAlign: TextAlign.right,
+                style: N.font(size: 21, weight: FontWeight.w700),
+              ),
             ),
             StepButton(
               label: '×',

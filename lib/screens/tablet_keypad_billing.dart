@@ -659,7 +659,8 @@ class _CompactLine extends StatelessWidget {
                     style: N.font(size: 16, weight: FontWeight.w600),
                   ),
                   Text(
-                    '${line.qty} × ${line.rateLabel} · GST ${line.gstLabel}',
+                    '${line.qty} × ${line.rateLabel} · '
+                    '${line.amountLabel} before GST · GST ${line.gstLabel}',
                     style: N.caption(),
                   ),
                 ],
@@ -667,8 +668,8 @@ class _CompactLine extends StatelessWidget {
             ),
             const SizedBox(width: 10),
             Text(
-              line.amountLabel,
-              style: N.font(size: 16, weight: FontWeight.w600),
+              line.grossLabel,
+              style: N.font(size: 19, weight: FontWeight.w700),
             ),
             const SizedBox(width: 10),
             StepButton(
