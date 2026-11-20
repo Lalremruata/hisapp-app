@@ -6,6 +6,7 @@ import 'bills_screen.dart';
 import 'invoice_a4.dart';
 import 'phone_billing.dart';
 import 'rate_card_screen.dart';
+import 'sales_screen.dart';
 import 'workshop_settings_screen.dart';
 import 'tablet_keypad_billing.dart';
 import 'tablet_rail_billing.dart';
@@ -41,6 +42,15 @@ class _BillingShellState extends State<BillingShell> {
     Navigator.of(context).push(
       PageRouteBuilder<void>(
         pageBuilder: (_, _, _) => BillsScreen(onPrint: _openInvoice),
+        transitionsBuilder: _slideUp,
+      ),
+    );
+  }
+
+  void _openSales() {
+    Navigator.of(context).push(
+      PageRouteBuilder<void>(
+        pageBuilder: (_, _, _) => const SalesScreen(),
         transitionsBuilder: _slideUp,
       ),
     );
@@ -97,12 +107,14 @@ class _BillingShellState extends State<BillingShell> {
       onOpenSettings: _openSettings,
       onOpenRateCard: _openRateCard,
       onOpenBills: _openBills,
+      onOpenSales: _openSales,
       onOpenInvoice: _openInvoice,
     ),
     TabletLayout.keypad => TabletKeypadBilling(
       onOpenSettings: _openSettings,
       onOpenRateCard: _openRateCard,
       onOpenBills: _openBills,
+      onOpenSales: _openSales,
       onOpenInvoice: _openInvoice,
     ),
   };
@@ -111,6 +123,7 @@ class _BillingShellState extends State<BillingShell> {
     onOpenSettings: _openSettings,
     onOpenRateCard: _openRateCard,
     onOpenBills: _openBills,
+    onOpenSales: _openSales,
     onOpenInvoice: _openInvoice,
   );
 }

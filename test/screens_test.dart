@@ -2,10 +2,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hisap_app_2_0/main.dart';
+import 'package:hisap_app_2_0/models/bill.dart';
 import 'package:hisap_app_2_0/screens/invoice_a4.dart';
 import 'package:hisap_app_2_0/screens/phone_billing.dart';
 import 'package:hisap_app_2_0/screens/bills_screen.dart';
 import 'package:hisap_app_2_0/screens/rate_card_screen.dart';
+import 'package:hisap_app_2_0/screens/sales_screen.dart';
 import 'package:hisap_app_2_0/screens/workshop_settings_screen.dart';
 import 'package:hisap_app_2_0/screens/tablet_keypad_billing.dart';
 import 'package:hisap_app_2_0/screens/tablet_rail_billing.dart';
@@ -29,6 +31,7 @@ extension on WidgetTester {
     Size size, {
     TabletLayout layout = TabletLayout.search,
     bool blank = false,
+    BillingModel? model,
   }) async {
     view.physicalSize = size;
     view.devicePixelRatio = 1.0;
@@ -36,7 +39,7 @@ extension on WidgetTester {
     addTearDown(view.resetDevicePixelRatio);
     await pumpWidget(
       HisapApp(
-        model: blank ? null : BillingModel().withDemoBill(),
+        model: model ?? (blank ? null : BillingModel().withDemoBill()),
         theme: ThemeController(
           store: InMemoryThemeStore(),
           tabletLayout: layout,
@@ -676,37 +679,39 @@ void main() {
       expect(find.text('Repriced'), findsOneWidget);
     });
 
-    testWidgets('a new price reaches the bill, but not a line already on it', (
-      tester,
-    ) async {
-      await tester.pumpAppAt(_tablet);
-      await openRateCard(tester);
+    testWidgets(
+      'a new price reaches the bill, including a line already on it',
+      (tester) async {
+        await tester.pumpAppAt(_tablet);
+        await openRateCard(tester);
 
-      await findRow(tester, 'oil filter');
-      await tester.tap(find.text('Oil Filter'));
-      await tester.pumpAndSettle();
-      await tester.enterText(_newItemRate, '400');
-      await tester.pump();
-      await tester.tap(
-        find.descendant(
-          of: find.byType(NDialog),
-          matching: find.widgetWithText(NButton, 'Save'),
-        ),
-      );
-      await tester.pumpAndSettle();
-      await tester.tap(find.bySemanticsLabel('Back').first);
-      await tester.pumpAndSettle();
+        await findRow(tester, 'oil filter');
+        await tester.tap(find.text('Oil Filter'));
+        await tester.pumpAndSettle();
+        await tester.enterText(_newItemRate, '400');
+        await tester.pump();
+        await tester.tap(
+          find.descendant(
+            of: find.byType(NDialog),
+            matching: find.widgetWithText(NButton, 'Save'),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.bySemanticsLabel('Back').first);
+        await tester.pumpAndSettle();
 
-      // The filter already on the bill keeps the price it was added at.
-      expect(find.text('₹2,974'), findsOneWidget);
+        // The filter already on the bill takes the new price: 2,600 before GST.
+        expect(find.text('₹3,068'), findsOneWidget);
 
-      // Adding it again brings the new price, on its own line.
-      await tester.enterText(_search, 'Oil Filter');
-      await tester.pump();
-      await tester.tap(find.text('Add to bill'));
-      await tester.pumpAndSettle();
-      expect(find.text('₹3,446'), findsOneWidget);
-    });
+        // Adding it again joins the same line, now that the prices match.
+        await tester.enterText(_search, 'Oil Filter');
+        await tester.pump();
+        await tester.tap(find.text('Add to bill'));
+        await tester.pumpAndSettle();
+        expect(find.text('₹3,540'), findsOneWidget);
+        expect(find.text('Oil Filter'), findsOneWidget);
+      },
+    );
 
     testWidgets('removing asks first, then offers to put it back', (
       tester,
@@ -961,6 +966,98 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(BillsScreen), findsOneWidget);
       expect(find.textContaining('Hold a bill to park it'), findsOneWidget);
+    });
+  });
+
+  group('the sales screen', () {
+    /// The demo job, paid and still on the counter.
+    BillingModel paid(PaymentMethod method) =>
+        BillingModel().withDemoBill()..settleBill(method);
+
+    Future<void> openSales(WidgetTester tester) async {
+      await tester.tap(find.bySemanticsLabel('Sales').first);
+      await tester.pumpAndSettle();
+    }
+
+    final list = find.descendant(
+      of: find.byType(SalesScreen),
+      matching: find.byType(Scrollable),
+    );
+
+    testWidgets('the rail opens it, with the paid bill counted', (
+      tester,
+    ) async {
+      await tester.pumpAppAt(_tablet, model: paid(PaymentMethod.cash));
+      await openSales(tester);
+
+      expect(find.byType(SalesScreen), findsOneWidget);
+      // The demo bill before GST: 1,450 + 320 + 350 + 4 × 100.
+      // Sales, and the average of the one bill.
+      expect(find.text('₹2,520'), findsNWidgets(2));
+      expect(find.text('Engine Oil 5W-30 (3.5 L)'), findsOneWidget);
+      expect(find.text('₹1,450.00'), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.text('MZ 01 AB 1234'),
+        300,
+        scrollable: list,
+      );
+      expect(find.text('MZ 01 AB 1234'), findsOneWidget);
+    });
+
+    testWidgets('slow sellers lists what did not sell', (tester) async {
+      await tester.pumpAppAt(_tablet, model: paid(PaymentMethod.upi));
+      await openSales(tester);
+
+      await tester.tap(find.text('Slow sellers'));
+      await tester.pumpAndSettle();
+      expect(find.text('NOT SOLD THIS PERIOD · 14'), findsOneWidget);
+      expect(find.text('Air Filter'), findsOneWidget);
+      expect(find.text('No sales'), findsWidgets);
+
+      await tester.scrollUntilVisible(
+        find.text('Show all 18'),
+        300,
+        scrollable: list,
+      );
+      await tester.tap(find.text('Show all 18'));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('SOLD THE LEAST · 4'),
+        300,
+        scrollable: list,
+      );
+      expect(find.text('SOLD THE LEAST · 4'), findsOneWidget);
+    });
+
+    testWidgets('a held bill is not a sale', (tester) async {
+      await tester.pumpAppAt(_tablet);
+      await tester.tap(find.widgetWithText(NButton, 'Hold bill'));
+      await tester.pumpAndSettle();
+      await openSales(tester);
+
+      expect(find.textContaining('No bills were issued'), findsOneWidget);
+      expect(find.text('₹0'), findsWidgets);
+    });
+
+    testWidgets('the keypad layout reaches it', (tester) async {
+      await tester.pumpAppAt(_tablet, layout: TabletLayout.keypad);
+      await openSales(tester);
+      expect(find.byType(SalesScreen), findsOneWidget);
+    });
+
+    testWidgets('the phone reaches it, and it fits', (tester) async {
+      await tester.pumpAppAt(_phone, model: paid(PaymentMethod.cash));
+      await openSales(tester);
+
+      expect(find.byType(SalesScreen), findsOneWidget);
+      // Sales, and the average of the one bill.
+      expect(find.text('₹2,520'), findsNWidgets(2));
+      for (final period in ['Last month', 'This year', 'All time']) {
+        await tester.tap(find.text(period));
+        await tester.pumpAndSettle();
+      }
+      // Sales, and the average of the one bill.
+      expect(find.text('₹2,520'), findsNWidgets(2));
     });
   });
 }

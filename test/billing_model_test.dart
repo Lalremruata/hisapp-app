@@ -803,22 +803,70 @@ void main() {
       expect(model.items.where((i) => i.name.contains('Fuel')), hasLength(1));
     });
 
-    test('an edit does not rewrite a bill already in progress', () {
+    const dearerOil = CatalogItem(
+      name: 'Engine Oil 5W-30 (3.5 L)',
+      rate: 1600,
+      gst: 18,
+      code: '2710',
+    );
+
+    test('an edit reprices the line on the bill in progress', () {
       final model = BillingModel().withDemoBill();
       // The oil is on the opening bill at 1,450.
+      model.bump(0, 1);
       expect(model.lines.first.rate, 1450);
 
+      model.updateItem(byName(model, 'Engine Oil 5W-30 (3.5 L)'), dearerOil);
+
+      expect(model.lines.first.rate, 1600);
+      expect(model.lines.first.qty, 2, reason: 'the quantity is kept');
+      expect(model.lines.first.taxable, 3200);
+      expect(byName(model, 'Engine Oil 5W-30 (3.5 L)').rate, 1600);
+    });
+
+    test('an edit carries the GST rate and the code onto the line', () {
+      final model = BillingModel().withDemoBill();
       model.updateItem(
-        byName(model, 'Engine Oil 5W-30 (3.5 L)'),
-        const CatalogItem(
-          name: 'Engine Oil 5W-30 (3.5 L)',
-          rate: 1600,
-          gst: 18,
-          code: '2710',
-        ),
+        byName(model, 'Oil Filter'),
+        const CatalogItem(name: 'Oil Filter', rate: 320, gst: 28, code: '8409'),
       );
 
-      expect(model.lines.first.rate, 1450, reason: 'the line is a snapshot');
+      final filter = model.lines.firstWhere((l) => l.name == 'Oil Filter');
+      expect(filter.gst, 28);
+      expect(filter.code, '8409');
+    });
+
+    test('a rate typed in by hand is left alone', () {
+      final model = BillingModel().withDemoBill()
+        ..addToCart(seedCatalog[0], rate: 1300);
+      expect(model.lines.last.rate, 1300);
+
+      model.updateItem(byName(model, 'Engine Oil 5W-30 (3.5 L)'), dearerOil);
+
+      expect(model.lines.first.rate, 1600);
+      expect(model.lines.last.rate, 1300, reason: 'priced at the counter');
+    });
+
+    test('lines that meet at the new rate become one', () {
+      final model = BillingModel().withDemoBill()
+        ..addToCart(seedCatalog[0], rate: 1600);
+      final before = model.lines.length;
+
+      model.updateItem(byName(model, 'Engine Oil 5W-30 (3.5 L)'), dearerOil);
+
+      expect(model.lines.length, before - 1);
+      expect(model.lines.first.rate, 1600);
+      expect(model.lines.first.qty, 2);
+    });
+
+    test('a paid bill is never rewritten', () {
+      final model = BillingModel().withDemoBill()
+        ..settleBill(PaymentMethod.cash);
+
+      model.updateItem(byName(model, 'Engine Oil 5W-30 (3.5 L)'), dearerOil);
+
+      expect(model.lines.first.rate, 1450);
+      expect(model.bills.single.lines.first.rate, 1450);
       expect(byName(model, 'Engine Oil 5W-30 (3.5 L)').rate, 1600);
     });
 

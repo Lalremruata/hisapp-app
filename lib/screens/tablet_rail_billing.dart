@@ -24,12 +24,14 @@ class TabletRailBilling extends StatefulWidget {
     required this.onOpenSettings,
     required this.onOpenRateCard,
     required this.onOpenBills,
+    required this.onOpenSales,
     required this.onOpenInvoice,
   });
 
   final VoidCallback onOpenSettings;
   final VoidCallback onOpenRateCard;
   final VoidCallback onOpenBills;
+  final VoidCallback onOpenSales;
   final VoidCallback onOpenInvoice;
 
   @override
@@ -60,6 +62,7 @@ class _TabletRailBillingState extends State<TabletRailBilling> {
           onOpenSettings: widget.onOpenSettings,
           onOpenRateCard: widget.onOpenRateCard,
           onOpenBills: widget.onOpenBills,
+          onOpenSales: widget.onOpenSales,
         ),
         Expanded(
           child: Column(
@@ -122,11 +125,13 @@ class _IconRail extends StatelessWidget {
     required this.onOpenSettings,
     required this.onOpenRateCard,
     required this.onOpenBills,
+    required this.onOpenSales,
   });
 
   final VoidCallback onOpenSettings;
   final VoidCallback onOpenRateCard;
   final VoidCallback onOpenBills;
+  final VoidCallback onOpenSales;
 
   @override
   Widget build(BuildContext context) {
@@ -169,6 +174,12 @@ class _IconRail extends StatelessWidget {
               icon: PhosphorIcons.listBullets,
               label: 'Bills',
               onPressed: onOpenBills,
+            ),
+            const SizedBox(height: 8),
+            LabeledIconButton(
+              icon: PhosphorIcons.chartBar,
+              label: 'Sales',
+              onPressed: onOpenSales,
             ),
             const SizedBox(height: 8),
             LabeledIconButton(
@@ -443,7 +454,7 @@ class _TableHead extends StatelessWidget {
           children: [
             cell('Item', TextAlign.left),
             cell('Quantity', TextAlign.center),
-            cell('Amount', TextAlign.right),
+            cell('Incl. GST', TextAlign.right),
             const SizedBox.shrink(),
           ],
         ),
@@ -500,6 +511,7 @@ class _LineRow extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   [
+                    '${line.amountLabel} before GST',
                     '${line.rateLabel} each',
                     'GST ${line.gstLabel}',
                     if (line.code.isNotEmpty) '${line.codeLabel} ${line.code}',
@@ -531,10 +543,16 @@ class _LineRow extends StatelessWidget {
                 ),
               ],
             ),
-            Text(
-              line.amountLabel,
-              textAlign: TextAlign.right,
-              style: N.font(size: 17, weight: FontWeight.w600),
+            // What the customer pays for the line, GST included; the value
+            // before GST sits under the item's name.
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerRight,
+              child: Text(
+                line.grossLabel,
+                textAlign: TextAlign.right,
+                style: N.font(size: 21, weight: FontWeight.w700),
+              ),
             ),
             StepButton(
               label: '×',
